@@ -198,7 +198,17 @@ namespace ClipboardToolForBakin
                             writer.Write(0x00000000);
                             writer.Write((byte)0x03);
                             writer.Write((byte)0x00);
-                            writer.Write((byte)Encoding.UTF8.GetByteCount(rowData.Text));
+                            textLength = Encoding.UTF8.GetByteCount(rowData.Text);
+                            multiple = textLength / 0x80;
+                            if (multiple == 0)
+                            {
+                                writer.Write((byte)textLength);
+                            }
+                            else
+                            {
+                                writer.Write((byte)(textLength % 0x80 + 0x80));
+                                writer.Write((byte)multiple);
+                            }
                             writer.Write(Encoding.UTF8.GetBytes(rowData.Text));
                             break;
                     }
@@ -328,7 +338,13 @@ namespace ClipboardToolForBakin
                                 reader.ReadByte();
 
                                 textLength = reader.ReadByte();
+                                if (textLength > 0x7F)
+                                {
+                                    byte temp = reader.ReadByte();
+                                    textLength = textLength + 128 * (temp - 1);
+                                }
                                 rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
+
                                 break;
 
                             default:

@@ -379,7 +379,7 @@ namespace ClipboardToolForBakin
 
         public static bool IsValidHEXFormat(string input)
         {
-            Regex pattern = new Regex(@"^23A1F302-([0-9A-Fa-f]{2}-){3}[0-9A-Fa-f]{11}$");
+            Regex pattern = new Regex(@"^([0-9A-Fa-f]{8}-){3}[0-9A-Fa-f]{8}$");
             return pattern.IsMatch(input);
         }
 
@@ -447,11 +447,6 @@ namespace ClipboardToolForBakin
             {
                 cell.Value = "00000000-00000000-00000000-00000000";
             }
-            else
-            {
-                string paddedValue = cellValue.Substring(0, Math.Min(16, cellValue.Length)).PadLeft(16, '0');
-                cell.Value = paddedValue;
-            }
         }
 
         private void ValidateActCastCellValue(int rowIndex, int columnIndex)
@@ -496,6 +491,12 @@ namespace ClipboardToolForBakin
 
         private void PasteFromClipboardButton_Click(object sender, EventArgs e)
         {
+            bool hasYukar2ScriptCommandsFormatData = Clipboard.ContainsData("Yukar2ScriptCommands");
+            if (!hasYukar2ScriptCommandsFormatData)
+            {
+                return;
+            }
+
             var data = BakinPanelData.GetClipBoardData().ToList();
             data.Reverse();
             foreach (var rowData in data)

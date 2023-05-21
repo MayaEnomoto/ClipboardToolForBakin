@@ -288,7 +288,7 @@ namespace ClipboardToolForBakin
                                     rowData.ActCast2 = Encoding.ASCII.GetString(reader.ReadBytes(actCast2Length));
                                 }
 
-                                rowData.TalkCast = reader.ReadUInt32() == 0x00000001 ? "1" : "2";
+                                rowData.TalkCast = reader.ReadUInt32() == 0x00000000 ? "1" : "2";
                                 rowData.MirrorCast1 = reader.ReadUInt32() == 0x00000001;
                                 rowData.MirrorCast2 = reader.ReadUInt32() == 0x00000001;
                                 rowData.UseMapLight = reader.ReadUInt32() == 0x00000001;
@@ -379,7 +379,7 @@ namespace ClipboardToolForBakin
         public static string BinaryToFormattedHexString(byte[] data)
         {
             string hex = BinaryToHexString(data);
-            return hex.Insert(4, "-").Insert(9, "-").Insert(14, "-").Insert(19, "-");
+            return hex.Insert(8, "-").Insert(17, "-").Insert(26, "-");
         }
 
         public static byte[] FormattedHexStringToBinary(string formattedHex)

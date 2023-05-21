@@ -204,7 +204,7 @@
             Controls.Add(menuStrip1);
             MainMenuStrip = menuStrip1;
             Name = "MainForm";
-            Text = "Clipboard Tool for Bakin v1.0.1";
+            Text = "Clipboard Tool for Bakin v1.0.2";
             ((System.ComponentModel.ISupportInitialize)dataGridView).EndInit();
             contextMenuStrip1.ResumeLayout(false);
             menuStrip1.ResumeLayout(false);

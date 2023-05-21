@@ -192,6 +192,7 @@ namespace ClipboardToolForBakin
                             writer.Write(0x00000000);
                             break;
 
+                        case "Notes":
                         default:
                             writer.Write(0x0000007E);
                             writer.Write(0x00000000);
@@ -320,7 +321,7 @@ namespace ClipboardToolForBakin
                                 reader.ReadUInt32();
                                 break;
 
-                            default:
+                            case 0x0000007E:
                                 rowData.Tag = "Notes";
                                 reader.ReadUInt32();
                                 reader.ReadByte();
@@ -329,6 +330,10 @@ namespace ClipboardToolForBakin
                                 textLength = reader.ReadByte();
                                 rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
                                 break;
+
+                            default:
+                                // not for support
+                                return data;
                         }
 
                         data.Add(rowData);

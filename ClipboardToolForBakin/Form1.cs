@@ -115,7 +115,7 @@ namespace ClipboardToolForBakin
             {
                 Name = "WindowPosition",
                 HeaderText = "WindowPosition",
-                DataSource = new string[] { "Up", "Center", "Down", "Bubble" },
+                DataSource = new string[] { "Up", "Center", "Down", "Bubble(Player)", "Bubble(ThisEvent)", "Bubble(Member2)", "Bubble(Member3)", "Bubble(Member4)", "Bubble(Event)" },
                 DataPropertyName = "WindowPosition",
                 ValueType = typeof(string),
                 DefaultCellStyle = new DataGridViewCellStyle { NullValue = "Down" }

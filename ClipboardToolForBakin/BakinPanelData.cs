@@ -50,7 +50,14 @@ namespace ClipboardToolForBakin
                         case "Talk":
                             writer.Write(0x0000002b);
                             writer.Write(0x00000000);
-                            writer.Write(0x02010103);
+                            if (rowData.WindowPosition == "Bubble(Event)")
+                            {
+                                writer.Write(0x02010203);
+                            }
+                            else
+                            {
+                                writer.Write(0x02010103);
+                            }
                             writer.Write(0x01030203);
                             writer.Write(0x01010101);
                             writer.Write((byte)0x01);
@@ -69,6 +76,7 @@ namespace ClipboardToolForBakin
                             }
 
                             writer.Write(Encoding.UTF8.GetBytes(rowData.Text));
+
                             switch (rowData.WindowPosition)
                             {
                                 case "Up":
@@ -77,8 +85,24 @@ namespace ClipboardToolForBakin
                                 case "Center":
                                     writer.Write(0x00000001);
                                     break;
-                                case "Bubble":
-                                    writer.Write(0x00000100);    // Bubble&Player
+                                case "Bubble(Player)":
+                                    writer.Write(0x00001000);
+                                    break;
+                                case "Bubble(ThisEvent)":
+                                    writer.Write(0x00001001);
+                                    break;
+                                case "Bubble(Member2)":
+                                    writer.Write(0x00001002);
+                                    break;
+                                case "Bubble(Member3)":
+                                    writer.Write(0x00001003);
+                                    break;
+                                case "Bubble(Member4)":
+                                    writer.Write(0x00001004);
+                                    break;
+                                case "Bubble(Event)":
+                                    byte[] bubbleBytes = FormattedHexStringToBinary(rowData.SpeechBubble);
+                                    writer.Write(bubbleBytes);
                                     break;
                                 case "Down":
                                 default:
@@ -97,11 +121,11 @@ namespace ClipboardToolForBakin
                             }
                             else
                             {
-                                byte[] cast1Bytes = FormattedHexStringToBinary(rowData.Cast1);
-                                writer.Write(cast1Bytes);
-                                byte[] actCast1Bytes = Encoding.ASCII.GetBytes(rowData.ActCast1);
-                                writer.Write((byte)actCast1Bytes.Length);
-                                writer.Write(actCast1Bytes);
+                                byte[] castBytes = FormattedHexStringToBinary(rowData.Cast1);
+                                writer.Write(castBytes);
+                                byte[] actCastBytes = Encoding.ASCII.GetBytes(rowData.ActCast1);
+                                writer.Write((byte)actCastBytes.Length);
+                                writer.Write(actCastBytes);
                             }
                             if (rowData.Cast2 == "00000000-00000000-00000000-00000000")
                             {
@@ -158,7 +182,14 @@ namespace ClipboardToolForBakin
                         case "Message":
                             writer.Write(0x0000001D);
                             writer.Write(0x00000000);
-                            writer.Write(0x00010103);
+                            if (rowData.WindowPosition == "Bubble(Event)")
+                            {
+                                writer.Write(0x00010203);
+                            }
+                            else
+                            {
+                                writer.Write(0x00010103);
+                            }
 
                             textLength = Encoding.UTF8.GetByteCount(rowData.Text);
                             multiple = textLength / 0x80;
@@ -181,8 +212,24 @@ namespace ClipboardToolForBakin
                                 case "Center":
                                     writer.Write(0x00000001);
                                     break;
-                                case "Bubble":
-                                    writer.Write(0x00000100);    // Bubble&Player
+                                case "Bubble(Player)":
+                                    writer.Write(0x00001000);
+                                    break;
+                                case "Bubble(ThisEvent)":
+                                    writer.Write(0x00001001);
+                                    break;
+                                case "Bubble(Member2)":
+                                    writer.Write(0x00001002);
+                                    break;
+                                case "Bubble(Member3)":
+                                    writer.Write(0x00001003);
+                                    break;
+                                case "Bubble(Member4)":
+                                    writer.Write(0x00001004);
+                                    break;
+                                case "Bubble(Event)":
+                                    byte[] bubbleBytes = FormattedHexStringToBinary(rowData.SpeechBubble);
+                                    writer.Write(bubbleBytes);
                                     break;
                                 case "Down":
                                 default:
@@ -220,6 +267,8 @@ namespace ClipboardToolForBakin
 
         public static IEnumerable<BakinPanelData.RowData> GetClipBoardData()
         {
+            int textLength;
+            uint windowPositionId;
             byte[] clipboardData = GetClipboardDataWithCustomFormat();
             List<BakinPanelData.RowData> data = new List<BakinPanelData.RowData>();
 
@@ -238,97 +287,110 @@ namespace ClipboardToolForBakin
                         switch (tagId)
                         {
                             case 0x0000002b:
-                                rowData.Tag = "Talk";
-                                reader.ReadUInt32();
-                                reader.ReadUInt32();
-                                reader.ReadUInt32();
-                                reader.ReadUInt32();
-                                reader.ReadByte();
-                                reader.ReadByte();
-
-                                int textLength = reader.ReadByte();
-                                if (textLength > 0x7F)
-                                {
-                                    byte temp = reader.ReadByte();
-                                    textLength = textLength + 128 * (temp - 1);
-                                }
-                                rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
-
-                                uint windowPositionId = reader.ReadUInt32();
-                                rowData.WindowPosition = windowPositionId switch
-                                {
-                                    0x00000000 => "Up",
-                                    0x00000001 => "Center",
-                                    0x00000100 => "Bubble",
-                                    _ => "Down"
-                                };
-                                reader.ReadUInt32();
-
-                                byte[] cast1Bytes = reader.ReadBytes(16);
-                                string cast1 = Encoding.ASCII.GetString(cast1Bytes).TrimEnd('\0');
-                                if (cast1.Length == 0)
-                                {
-                                    rowData.Cast1 = "00000000-00000000-00000000-00000000";
-                                    rowData.ActCast1 = "----";
-                                    byte actCast1Length = reader.ReadByte();
-                                }
-                                else
-                                {
-                                    string hexData = BinaryToFormattedHexString(cast1Bytes);
-                                    rowData.Cast1 = hexData;
-
-                                    byte actCast1Length = reader.ReadByte();
-                                    rowData.ActCast1 = Encoding.ASCII.GetString(reader.ReadBytes(actCast1Length));
-                                }
-
-                                byte[] cast2Bytes = reader.ReadBytes(16);
-                                string cast2 = Encoding.ASCII.GetString(cast2Bytes).TrimEnd('\0');
-                                if (cast2.Length == 0)
-                                {
-                                    rowData.Cast2 = "00000000-00000000-00000000-00000000";
-                                    rowData.ActCast2 = "----";
-                                    byte actCast1Length = reader.ReadByte();
-                                }
-                                else
-                                {
-                                    string hexData = BinaryToFormattedHexString(cast2Bytes);
-                                    rowData.Cast2 = hexData;
-
-                                    byte actCast2Length = reader.ReadByte();
-                                    rowData.ActCast2 = Encoding.ASCII.GetString(reader.ReadBytes(actCast2Length));
-                                }
-
-                                rowData.TalkCast = reader.ReadUInt32() == 0x00000000 ? "1" : "2";
-                                rowData.MirrorCast1 = reader.ReadUInt32() == 0x00000001;
-                                rowData.MirrorCast2 = reader.ReadUInt32() == 0x00000001;
-                                rowData.UseMapLight = reader.ReadUInt32() == 0x00000001;
-
-                                reader.ReadUInt32();
-                                reader.ReadUInt32();
-                                break;
-
                             case 0x0000001D:
-                                rowData.Tag = "Message";
-                                reader.ReadUInt32();
-                                reader.ReadUInt32();
-
-                                textLength = reader.ReadByte();
-                                if (textLength > 0x7F)
+                                if (tagId == 0x0000002b)
                                 {
-                                    byte temp = reader.ReadByte();
-                                    textLength = textLength + 128 * (temp - 1);
+                                    rowData.Tag = "Talk";
+                                    reader.ReadUInt32();
+                                    reader.ReadUInt32();
+                                    reader.ReadUInt32();
+                                    reader.ReadUInt32();
+                                    reader.ReadByte();
+                                    reader.ReadByte();
+
+                                    textLength = reader.ReadByte();
+                                    if (textLength > 0x7F)
+                                    {
+                                        byte temp = reader.ReadByte();
+                                        textLength = textLength + 128 * (temp - 1);
+                                    }
+                                    rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
                                 }
-                                rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
+                                else
+                                {
+                                    rowData.Tag = "Message";
+                                    reader.ReadUInt32();
+                                    reader.ReadUInt32();
+
+                                    textLength = reader.ReadByte();
+                                    if (textLength > 0x7F)
+                                    {
+                                        byte temp = reader.ReadByte();
+                                        textLength = textLength + 128 * (temp - 1);
+                                    }
+                                    rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
+
+                                }
 
                                 windowPositionId = reader.ReadUInt32();
                                 rowData.WindowPosition = windowPositionId switch
                                 {
                                     0x00000000 => "Up",
                                     0x00000001 => "Center",
-                                    0x00000100 => "Bubble",
-                                    _ => "Down"
+                                    0x00000002 => "Down",
+                                    0x00001000 => "Bubble(Player)",
+                                    0x00001001 => "Bubble(ThisEvent)",
+                                    0x00001002 => "Bubble(Member2)",
+                                    0x00001003 => "Bubble(Member3)",
+                                    0x00001004 => "Bubble(Member4)",
+                                    _ => "Bubble(Event)"
                                 };
+                                if (rowData.WindowPosition == "Bubble(Event)")
+                                {
+                                    byte[] windowPositionBytes = BitConverter.GetBytes(windowPositionId);
+                                    byte[] bubbleBytes = reader.ReadBytes(12);
+                                    byte[] combinedBytes = new byte[windowPositionBytes.Length + bubbleBytes.Length];
+                                    Buffer.BlockCopy(windowPositionBytes, 0, combinedBytes, 0, windowPositionBytes.Length);
+                                    Buffer.BlockCopy(bubbleBytes, 0, combinedBytes, windowPositionBytes.Length, bubbleBytes.Length);
+                                    string hexData = BinaryToFormattedHexString(combinedBytes);
+                                    rowData.SpeechBubble = hexData;
+                                }
                                 reader.ReadUInt32();
+
+                                if (tagId == 0x0000002b)
+                                {
+                                    byte[] cast1Bytes = reader.ReadBytes(16);
+                                    string cast1 = Encoding.ASCII.GetString(cast1Bytes).TrimEnd('\0');
+                                    if (cast1.Length == 0)
+                                    {
+                                        rowData.Cast1 = "00000000-00000000-00000000-00000000";
+                                        rowData.ActCast1 = "----";
+                                        byte actCast1Length = reader.ReadByte();
+                                    }
+                                    else
+                                    {
+                                        string hexData = BinaryToFormattedHexString(cast1Bytes);
+                                        rowData.Cast1 = hexData;
+
+                                        byte actCast1Length = reader.ReadByte();
+                                        rowData.ActCast1 = Encoding.ASCII.GetString(reader.ReadBytes(actCast1Length));
+                                    }
+
+                                    byte[] cast2Bytes = reader.ReadBytes(16);
+                                    string cast2 = Encoding.ASCII.GetString(cast2Bytes).TrimEnd('\0');
+                                    if (cast2.Length == 0)
+                                    {
+                                        rowData.Cast2 = "00000000-00000000-00000000-00000000";
+                                        rowData.ActCast2 = "----";
+                                        byte actCast1Length = reader.ReadByte();
+                                    }
+                                    else
+                                    {
+                                        string hexData = BinaryToFormattedHexString(cast2Bytes);
+                                        rowData.Cast2 = hexData;
+
+                                        byte actCast2Length = reader.ReadByte();
+                                        rowData.ActCast2 = Encoding.ASCII.GetString(reader.ReadBytes(actCast2Length));
+                                    }
+
+                                    rowData.TalkCast = reader.ReadUInt32() == 0x00000000 ? "1" : "2";
+                                    rowData.MirrorCast1 = reader.ReadUInt32() == 0x00000001;
+                                    rowData.MirrorCast2 = reader.ReadUInt32() == 0x00000001;
+                                    rowData.UseMapLight = reader.ReadUInt32() == 0x00000001;
+
+                                    reader.ReadUInt32();
+                                    reader.ReadUInt32();
+                                }
                                 break;
 
                             case 0x0000007E:
@@ -344,7 +406,6 @@ namespace ClipboardToolForBakin
                                     textLength = textLength + 128 * (temp - 1);
                                 }
                                 rowData.Text = Encoding.UTF8.GetString(reader.ReadBytes(textLength));
-
                                 break;
 
                             default:

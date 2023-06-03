@@ -162,7 +162,7 @@ namespace ClipboardToolForBakin
                 Map(m => m.Billboard1).Name("Billboard1").TypeConverter<BoolToStringConverter>().Optional().Default("off");
                 Map(m => m.Billboard2).Name("Billboard2").TypeConverter<BoolToStringConverter>().Optional().Default("off");
                 Map(m => m.WindowPosition).Name("WindowPosition").Optional().Default("Down");
-                Map(m => m.SpeechBubble).Name("SpeechBubble").Optional().Default("Reserved");
+                Map(m => m.SpeechBubble).Name("SpeechBubble").TypeConverter<CastValueConverter>().Optional().Default("00000000-00000000-00000000-00000000");
                 Map(m => m.UseMapLight).Name("UseMapLight").TypeConverter<BoolToStringConverter>().Optional().Default("off");
                 Map(m => m.Memo).Name("Memo").Optional().Default("");
             }
@@ -386,7 +386,8 @@ namespace ClipboardToolForBakin
         private void DataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == dataGridView.Columns["Cast1"].Index ||
-                e.ColumnIndex == dataGridView.Columns["Cast2"].Index)
+                e.ColumnIndex == dataGridView.Columns["Cast2"].Index ||
+                e.ColumnIndex == dataGridView.Columns["SpeechBubble"].Index)
             {
                 ValidateCastCellValue(e.RowIndex, e.ColumnIndex);
             }
@@ -415,6 +416,7 @@ namespace ClipboardToolForBakin
             DataGridViewCell cast2Cell = row.Cells["Cast2"];
             DataGridViewCell actCast1Cell = row.Cells["ActCast1"];
             DataGridViewCell actCast2Cell = row.Cells["ActCast2"];
+            DataGridViewCell speechBubble = row.Cells["SpeechBubble"];
 
             if (cast1Cell.Value == null || string.IsNullOrWhiteSpace(cast1Cell.Value.ToString()))
             {
@@ -431,6 +433,10 @@ namespace ClipboardToolForBakin
             if (actCast2Cell.Value == null || string.IsNullOrWhiteSpace(actCast2Cell.Value.ToString()))
             {
                 actCast2Cell.Value = "----";
+            }
+            if (speechBubble.Value == null || string.IsNullOrWhiteSpace(speechBubble.Value.ToString()))
+            {
+                speechBubble.Value = "00000000-00000000-00000000-00000000";
             }
         }
 

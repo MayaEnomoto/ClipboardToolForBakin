@@ -1,3 +1,11 @@
+This project has been released in Ver2 series. Please use Ver2 as much as possible, because some bugs and other problems have not been fed back to Ver1.
+
+このプロジェクトはVer2系がリリースされています。一部不具合などVer1系にフィードバックされていない為、なるべくVer2系をご利用ください。
+
+ClipboardToolForBakinV2
+
+https://github.com/MayaEnomoto/ClipboardToolForBakin2
+
 # ClipboardToolForBakin
 
 This is a support tool for copying and pasting the Talk (conversation), Message, and Notes event panels of RPG Developer Bakin.  
